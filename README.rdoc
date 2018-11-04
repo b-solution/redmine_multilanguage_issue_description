@@ -1,3 +1,13 @@
 = redmine_multilanguage_issue_description
 
-Description goes here
+This is a plugin of redmine that handle multiple description language in issue.
+
+= Instalation
+
+- git clone https://github.com/bilel-kedidi/redmine_multilanguage_issue_description.git
+
+- bundle install
+
+- rake redmine:plugins:migrate RAILS_ENV=production
+
+- restart the server
