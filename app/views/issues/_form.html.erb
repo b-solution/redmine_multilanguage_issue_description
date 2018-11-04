@@ -1,0 +1,95 @@
+<%= labelled_fields_for :issue, @issue do |f| %>
+<%= call_hook(:view_issues_form_details_top, { :issue => @issue, :form => f }) %>
+<%= hidden_field_tag 'form_update_triggered_by', '' %>
+<%= hidden_field_tag 'back_url', params[:back_url], :id => nil if params[:back_url].present? %>
+
+<% if @issue.safe_attribute? 'is_private' %>
+<p id="issue_is_private_wrap">
+  <%= f.check_box :is_private, :no_label => true %><label class="inline" for="issue_is_private" id="issue_is_private_label"><%= l(:field_is_private) %></label>
+</p>
+<% end %>
+
+<% if (@issue.safe_attribute?('project_id') || @issue.project_id_changed?) && (!@issue.new_record? || @project.nil? || @issue.copy?) %>
+<p><%= f.select :project_id, project_tree_options_for_select(@issue.allowed_target_projects, :selected => @issue.project), {:required => true},
+                :onchange => "updateIssueFrom('#{escape_javascript update_issue_form_path(@project, @issue)}', this)" %></p>
+<% end %>
+
+<% if @issue.safe_attribute?('tracker_id') || (@issue.persisted? && @issue.tracker_id_changed?) %>
+<p><%= f.select :tracker_id, trackers_options_for_select(@issue), {:required => true},
+                :onchange => "updateIssueFrom('#{escape_javascript update_issue_form_path(@project, @issue)}', this)" %></p>
+<% end %>
+
+<% if @issue.safe_attribute? 'subject' %>
+<p><%= f.text_field :subject, :size => 80, :maxlength => 255, :required => true %></p>
+<% end %>
+    <% if @issue.safe_attribute? 'description' %>
+        <%= javascript_include_tag 'application.js', plugin: 'redmine_multilanguage_issue_description' %>
+
+        <%= f.fields_for :issue_descriptions do |form| %>
+            <%= render partial: 'issue_description_fields', locals: {f: form} %>
+        <% end %>
+        <div class="links">
+          <%=  link_to_add_association 'add Description', f, :issue_descriptions, class: "icon icon-add" %>
+        </div>
+
+    <script>
+
+        function show_dialog(text, id){
+            $('#issue_description').data("desc-id", id)
+            $('#issue_description').val(text)
+            $( "#dialog-confirm" ).dialog({
+                resizable: true,
+                height: "auto",
+                width: "80%",
+                modal: true,
+                buttons: {
+                    "<%= l('button_apply') %>": function() {
+                        $("#"+ $('#issue_description').data("desc-id")).val($('#issue_description').val())
+                        $( this ).dialog( "close" );
+                    },
+                    "<%= l('button_cancel') %>": function() {
+                        $( this ).dialog( "close" );
+                    }
+                }
+            });
+        }
+        $( function() {
+            $('div#dialog-confirm').on('dialogclose', function(event) {
+                $('#issue_description').val('')
+            });
+        })
+    </script>
+    <div id="dialog-confirm" title="<%= l('field_description') %>" hidden>
+      <p>
+        <%= f.label_for_field :description, :required => @issue.required_attribute?('description') %>
+        <%= content_tag 'span', :id => "issue_description_and_toolbar" do %>
+            <%= f.text_area :description,
+                            :cols => 60,
+                            :rows => [[10, @issue.description.to_s.length / 50].max, 20].min,
+                            :accesskey => accesskey(:edit),
+                            :class => 'wiki-edit',
+                            :no_label => true %>
+        <% end %>
+      </p>
+      <%= wikitoolbar_for 'issue_description' %>
+
+    </div>
+
+<% end %>
+
+<div id="attributes" class="attributes">
+  <%= render :partial => 'issues/attributes' %>
+</div>
+
+<%= call_hook(:view_issues_form_details_bottom, { :issue => @issue, :form => f }) %>
+<% end %>
+
+<% heads_for_wiki_formatter %>
+
+<%= javascript_tag do %>
+$(document).ready(function(){
+  $("#issue_tracker_id, #issue_status_id").each(function(){
+    $(this).val($(this).find("option[selected=selected]").val());
+  });
+});
+<% end %>

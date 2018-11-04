@@ -1,0 +1,22 @@
+<div class="nested-fields">
+  <div>
+    <p><%= f.select :language, options_for_select(lang_options_for_select, selected: f.object.language), {required: true} %>
+
+      <%= link_to_function content_tag(:span, (f.object.new_record? ? l(:button_add) : l(:button_edit)),
+                                       :class => "icon icon-#{f.object.new_record? ? 'add' : 'edit'}"),
+                           'show_dialog($(this).parents(".nested-fields").find("textarea").val(), $(this).parents(".nested-fields").find("textarea").attr("id") )' %>
+
+
+      <%= link_to_remove_association l('button_delete'), f, :class => 'icon icon-del' %>
+    </p>
+  </div>
+  <div>
+
+    <div class="hidden_description" title="<%= l('field_description') %>" hidden>
+      <p>
+            <%= f.text_area :description %>
+      </p>
+    </div>
+  </div>
+
+</div>
